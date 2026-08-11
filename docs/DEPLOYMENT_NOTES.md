@@ -63,3 +63,17 @@ LLM 封装里先 `re.sub(r"<think>.*?</think>", "", text, flags=re.S)` 再抽取
 驱动 575 + Blackwell 只能用 cu128 wheel：
 `uv pip install torch --index-url https://download.pytorch.org/whl/cu128`。
 vLLM 需要较新版本（含 sm_120 kernel），LLM 与 embedding 统一固定在 GPU0（`CUDA_VISIBLE_DEVICES=0`）。
+
+追加：最新 vllm 0.27 自带 cu130 编译的 torch，在驱动 575（CUDA 12.9）上启动直接报
+`The NVIDIA driver on your system is too old (found version 12090)`。
+排查结论（对各 release 的 torch pin 逐一核对）：vllm 0.17–0.26 pin torch 2.10/2.11、
+0.27 pin 2.13，全是 CUDA 13 默认，均无法在该驱动上跑；**0.16.0（torch 2.9.1+cu128）
+是能在驱动 575 上运行的最新版本**。
+
+## 坑 9：同机多项目环境去重
+
+同机另一个项目也建了一套几乎相同的环境。最终约定：9.4GB 的 vLLM venv 共享
+（`/var/tmp/fls/vllm-venv`，py3.11，用 `python -m vllm.entrypoints.openai.api_server`
+方式调用以避开 venv 内绝对路径 shebang），几百 MB 的 postgres/node/应用 venv 各自独立
+（避免运行时互相耦合）。GPU 也做了分配：本项目 GPU0，另一项目 GPU3。
+Qwen3-32B（62GB）与 Qwen3-Embedding-0.6B 权重放 NFS 的 HF cache 共享，只下载一次。
