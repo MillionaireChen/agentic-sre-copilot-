@@ -422,7 +422,7 @@ def build_graph(checkpointer=None):
     g.add_edge("check_deployment", "retrieve_runbook")
     g.add_edge("retrieve_runbook", "diagnose")
     g.add_conditional_edges("diagnose", confidence_gate,
-                            ["planner", "propose_remediation"])
+                            ["planner", "propose_remediation", "report"])
     g.add_edge("propose_remediation", "risk_gate")
     g.add_conditional_edges("risk_gate", approval_branch,
                             ["execute_action", "report"])
