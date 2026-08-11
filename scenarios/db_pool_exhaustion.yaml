@@ -1,0 +1,23 @@
+name: db_pool_exhaustion
+title: DB Connection Pool Exhaustion
+deploys_version: v1.8.0
+deployment:
+  service: payments-api
+  previous_version: v1.7.3
+  current_version: v1.8.0
+  commit_sha: af38d91
+  changes:
+    DB_POOL_SIZE: {before: 50, after: 10}
+profile:
+  request_rate: 150
+  latency_p50: 1.9
+  latency_p95: 4.3
+  error_rate: 0.087
+  db_pool: {max: 10, active_min: 10, active_max: 10, waiting_min: 40, waiting_max: 70}
+  db_wait_p95: 3.7
+  cache_hit_ratio: 0.94
+expected_root_cause: db_pool_configuration_regression
+recommended_action:
+  tool: rollback_deployment
+  parameters: {service: payments-api, target_version: v1.7.3}
+  risk: HIGH

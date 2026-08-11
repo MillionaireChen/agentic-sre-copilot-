@@ -1,0 +1,23 @@
+name: memory_leak
+title: Memory Leak
+deploys_version: v1.8.1
+deployment:
+  service: payments-api
+  previous_version: v1.7.3
+  current_version: v1.8.1
+  commit_sha: c91e2b7
+  changes:
+    payment_batch_cache: {before: "bounded LRU", after: "unbounded dict"}
+profile:
+  request_rate: 150
+  latency_p50: 0.35
+  latency_p95: 1.4
+  error_rate: 0.02
+  db_pool: {max: 50, active_min: 15, active_max: 25, waiting_min: 0, waiting_max: 0}
+  db_wait_p95: 0.01
+  cache_hit_ratio: 0.93
+expected_root_cause: memory_leak_from_deployment
+recommended_action:
+  tool: rollback_deployment
+  parameters: {service: payments-api, target_version: v1.7.3}
+  risk: HIGH

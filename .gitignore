@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+run/
+node_modules/
+.next/
+*.log
+.pytest_cache/

@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: demo-service
+    static_configs:
+      - targets: ["localhost:9000"]
+        labels:
+          service: payments-api
+  - job_name: agent-api
+    static_configs:
+      - targets: ["localhost:8000"]

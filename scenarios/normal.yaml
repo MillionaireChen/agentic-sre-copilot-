@@ -1,0 +1,10 @@
+name: normal
+title: Healthy baseline
+profile:
+  request_rate: 150
+  latency_p50: 0.08
+  latency_p95: 0.23
+  error_rate: 0.003
+  db_pool: {max: 50, active_min: 15, active_max: 25, waiting_min: 0, waiting_max: 0}
+  db_wait_p95: 0.008
+  cache_hit_ratio: 0.94

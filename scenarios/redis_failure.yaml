@@ -1,0 +1,15 @@
+name: redis_failure
+title: Redis Cache Failure
+profile:
+  request_rate: 150
+  latency_p50: 1.1
+  latency_p95: 2.8
+  error_rate: 0.03
+  db_pool: {max: 50, active_min: 38, active_max: 48, waiting_min: 0, waiting_max: 8}
+  db_wait_p95: 0.15
+  cache_hit_ratio: 0.11
+expected_root_cause: redis_connectivity_degradation
+recommended_action:
+  tool: restart_service
+  parameters: {service: redis}
+  risk: MEDIUM
