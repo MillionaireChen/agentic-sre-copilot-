@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -171,6 +172,21 @@ async def decide_approval(run_id: str, body: dict):
     return {"ok": True, "decision": decision}
 
 
+# auto-start the investigation N seconds after a scenario is triggered
+# (gives the fault time to show up in metrics); 0 disables it.
+AUTO_INVESTIGATE_DELAY = int(os.environ.get("AUTO_INVESTIGATE_DELAY", "30"))
+
+
+async def _auto_investigate(incident_id: str):
+    await asyncio.sleep(AUTO_INVESTIGATE_DELAY)
+    with SessionLocal() as db:
+        inc = db.get(Incident, incident_id)
+        # skip if someone already started it manually or closed it
+        if not inc or inc.status != "OPEN":
+            return
+    await investigate(incident_id)
+
+
 # --------------------------------------------------------------- demo control
 @app.post("/api/demo/scenarios/{key}/start")
 async def start_scenario(key: str):
@@ -196,7 +212,12 @@ async def start_scenario(key: str):
                        severity=sev, scenario=name)
         db.add(inc)
         db.commit()
-        return {"ok": True, "incident_id": inc.id, "scenario": name}
+        incident_id = inc.id
+
+    if AUTO_INVESTIGATE_DELAY > 0:
+        asyncio.create_task(_auto_investigate(incident_id))
+    return {"ok": True, "incident_id": incident_id, "scenario": name,
+            "auto_investigate_in": AUTO_INVESTIGATE_DELAY or None}
 
 
 @app.post("/api/demo/reset")
