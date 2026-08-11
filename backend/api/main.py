@@ -189,7 +189,7 @@ async def start_scenario(key: str):
                 previous_version=dep["previous_version"],
                 commit_sha=dep.get("commit_sha"),
                 deployed_at=datetime.now(timezone.utc),
-                config={k: v["after"] for k, v in dep.get("changes", {}).items()},
+                config={"changes": dep.get("changes", {})},
             ))
         title, sev = SCENARIO_INCIDENTS[name]
         inc = Incident(title=title, service="payments-api",
@@ -207,6 +207,9 @@ async def demo_reset():
     with SessionLocal() as db:
         for i in db.query(Incident).filter(Incident.status != "RESOLVED"):
             i.status = "CLOSED"
+        # drop scenario-injected and rollback deployment rows so consecutive
+        # scenarios don't blame each other's deployments (keep the baseline)
+        db.query(Deployment).filter(Deployment.commit_sha != "1b02c44").delete()
         db.commit()
     return {"ok": True}
 

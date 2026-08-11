@@ -49,7 +49,9 @@ def stubbed(monkeypatch):
     monkeypatch.setattr(g, "_snapshot_key_metrics",
                         lambda svc: {"p95_latency": "0.2", "error_rate": "0.002",
                                      "db_pool_waiting": "0"})
-    # LLM offline in CI -> mock path is used automatically; no sleep in verify
+    # force the mock path even when a local vLLM is running
+    from backend.config import settings
+    monkeypatch.setattr(settings, "llm_base_url", "http://localhost:1/v1")
     import time
     monkeypatch.setattr(time, "sleep", lambda s: None)
     # rebuild graph so the patched collect_metrics is bound as the node fn

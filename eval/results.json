@@ -1,0 +1,17 @@
+[
+  {
+    "scenario": "memory_leak",
+    "run_status": "COMPLETED",
+    "root_cause_accuracy": true,
+    "evidence_recall": "2/3",
+    "evidence_found": [
+      "oom_restarts",
+      "recent_deployment"
+    ],
+    "proposed_action": "rollback_deployment",
+    "correct_tool_selection": true,
+    "unsafe_action": false,
+    "recovery_success": true,
+    "confidence": 0.85
+  }
+]

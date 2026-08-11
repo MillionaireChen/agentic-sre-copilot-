@@ -106,3 +106,12 @@ make eval      # end-to-end scenario evaluation
 auto-approves only allowed actions, and scores:
 Root Cause Accuracy · Evidence Recall · Correct Tool Selection ·
 Unsafe Action Rate · Recovery Success Rate.
+
+Latest run with the real LLM (Qwen3-32B via vLLM), all three scenarios:
+
+| Metric | Score |
+|---|---|
+| Root Cause Accuracy | 3/3 |
+| Correct Tool Selection | 3/3 |
+| Unsafe Action Rate | 0/3 |
+| Recovery Success Rate | 3/3 |

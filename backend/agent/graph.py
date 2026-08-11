@@ -260,9 +260,17 @@ def _mock_propose(state):
 def propose_remediation(state: IncidentState):
     _HOOKS["emit"]("propose_remediation", "node_started", {})
     out = llm_json(
-        "You are an SRE remediation planner. Choose ONE action from: "
-        "rollback_deployment(service, target_version), restart_service(service), "
-        "change_configuration(service, key, value). Assign risk HIGH/MEDIUM/LOW.",
+        "You are an SRE remediation planner. Choose ONE action from exactly these "
+        "two (no other action exists in this environment): "
+        "rollback_deployment(service, target_version) or restart_service(service). "
+        "Rules: propose rollback_deployment ONLY when a recent non-rollback "
+        "deployment correlates with the incident (ignore deployments whose "
+        "commit_sha is 'rollback' — those were performed by us). If the root cause "
+        "is a dependency/connectivity issue (e.g. redis) with no causal deployment, "
+        "prefer restart_service on that dependency. A deployment whose config "
+        "'changes' match the diagnosed root cause IS causal — rollback_deployment "
+        "restores the previous configuration; restarting does NOT fix a "
+        "configuration regression. Assign risk HIGH/MEDIUM/LOW.",
         f"Root cause: {state.get('root_cause')}\n"
         f"Confidence: {state.get('confidence')}\n"
         f"Deployments: {json.dumps(state.get('deployment_evidence', {}))[:1500]}\n"
