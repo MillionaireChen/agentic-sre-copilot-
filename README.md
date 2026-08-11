@@ -14,9 +14,11 @@ executes actions, and verifies recovery.
 
 ## Demo video
 
-Watch the full end-to-end demo (incident injection → investigation → approval → rollback → verified recovery):
+End-to-end demo (incident injection → investigation → approval → rollback → verified recovery), 4× speed:
 
-[▶ Watch the demo](docs/assets/demo.mp4)
+![Demo](docs/assets/demo.gif)
+
+[▶ Watch the full-speed video](docs/assets/demo.mp4)
 
 ## Architecture
 
