@@ -12,6 +12,12 @@ executes actions, and verifies recovery.
 > with a confidence gate, waits for human approval on any write action,
 > rolls back the bad deployment, and re-queries metrics to prove recovery.
 
+## Demo video
+
+Watch the full end-to-end demo (incident injection → investigation → approval → rollback → verified recovery):
+
+[▶ Watch the demo](docs/assets/demo.mp4)
+
 ## Architecture
 
 ```
