@@ -22,7 +22,7 @@ cmd_for() {
     loki)         echo "$ENV/bin/loki -config.file=$REPO/infrastructure/loki/loki-config.yml" ;;
     alloy)        echo "$ENV/bin/alloy run --storage.path=$ENV/alloy-data --server.http.listen-addr=127.0.0.1:12345 $REPO/infrastructure/alloy/config.alloy" ;;
     demo-service) echo "$PY -m uvicorn main:app --host 0.0.0.0 --port 9000 --app-dir $REPO/services/demo-service" ;;
-    agent-api)    echo "$PY -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --app-dir $REPO" ;;
+    agent-api)    echo "env CUDA_VISIBLE_DEVICES=0 $PY -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --app-dir $REPO" ;;
     frontend)     echo "$NODE_BIN/npm --prefix $REPO/frontend run dev" ;;
   esac
 }
