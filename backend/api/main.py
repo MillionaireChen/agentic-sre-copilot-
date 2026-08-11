@@ -211,6 +211,29 @@ async def demo_reset():
     return {"ok": True}
 
 
+@app.get("/api/metrics/timeseries")
+def metrics_timeseries(kind: str = "p95", minutes: int = 30):
+    """Small proxy for the dashboard charts."""
+    import time as _t
+    from backend.tools.prometheus import query_prometheus
+    svc = "payments-api"
+    queries = {
+        "p95": 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="%s"}[2m])) by (le))' % svc,
+        "error_rate": 'sum(rate(http_request_errors_total{service="%s"}[2m])) / sum(rate(http_requests_total{service="%s"}[2m]))' % (svc, svc),
+        "db_waiting": 'db_pool_waiting_requests{service="%s"}' % svc,
+    }
+    q = queries.get(kind)
+    if not q:
+        raise HTTPException(400, f"kind must be one of {list(queries)}")
+    end = int(_t.time())
+    out = query_prometheus(q, start_time=str(end - minutes * 60),
+                           end_time=str(end), step="15s")
+    series = out.get("result", [])
+    points = series[0].get("values", []) if series else []
+    return {"kind": kind,
+            "points": [{"t": int(float(t)), "v": float(v)} for t, v in points]}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}

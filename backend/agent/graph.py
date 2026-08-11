@@ -227,7 +227,11 @@ def confidence_gate(state: IncidentState) -> str:
     if state.get("confidence", 0) >= CONFIDENCE_THRESHOLD:
         return "propose_remediation"
     if state.get("investigation_round", 0) >= MAX_ROUNDS:
-        return "propose_remediation"  # act on best hypothesis, flag low confidence
+        # never act on a low-confidence diagnosis: report and hand to a human
+        _HOOKS["emit"]("confidence_gate", "node_started",
+                       {"decision": "give_up_to_report",
+                        "confidence": state.get("confidence")})
+        return "report"
     _HOOKS["emit"]("confidence_gate", "node_started",
                    {"decision": "re-investigate",
                     "confidence": state.get("confidence")})
@@ -236,7 +240,9 @@ def confidence_gate(state: IncidentState) -> str:
 
 def _mock_propose(state):
     m = state.get("metrics_evidence", {})
-    deps = state.get("deployment_evidence", {}).get("deployments", [])
+    # ignore rollbacks we performed ourselves when picking the culprit deploy
+    deps = [d for d in state.get("deployment_evidence", {}).get("deployments", [])
+            if d.get("commit_sha") != "rollback"]
     recent = deps[0] if deps else {}
     cause = (state.get("hypotheses") or [{}])[0].get("cause", "")
     if "redis" in cause:
@@ -290,9 +296,10 @@ def approval_branch(state: IncidentState) -> str:
 
 
 def _snapshot_key_metrics(service):
+    # 1m windows so post-action snapshots aren't polluted by incident samples
     keys = {
-        "p95_latency": 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="%s"}[2m])) by (le))' % service,
-        "error_rate": 'sum(rate(http_request_errors_total{service="%s"}[2m])) / sum(rate(http_requests_total{service="%s"}[2m]))' % (service, service),
+        "p95_latency": 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="%s"}[1m])) by (le))' % service,
+        "error_rate": 'sum(rate(http_request_errors_total{service="%s"}[1m])) / sum(rate(http_requests_total{service="%s"}[1m]))' % (service, service),
         "db_pool_waiting": 'db_pool_waiting_requests{service="%s"}' % service,
     }
     snap = {}
@@ -322,8 +329,8 @@ def verify(state: IncidentState):
     """Re-query Prometheus and compare against the pre-action baseline."""
     import time
     _HOOKS["emit"]("verify", "node_started",
-                   {"waiting_seconds": 20, "note": "letting metrics settle"})
-    time.sleep(20)
+                   {"waiting_seconds": 75, "note": "letting the 1m rate window clear incident samples"})
+    time.sleep(75)
     after = _snapshot_key_metrics(state["service"])
     before = state.get("baseline_before", {})
     def f(x):

@@ -24,6 +24,7 @@ cmd_for() {
     demo-service) echo "$PY -m uvicorn main:app --host 0.0.0.0 --port 9000 --app-dir $REPO/services/demo-service" ;;
     agent-api)    echo "env CUDA_VISIBLE_DEVICES=0 $PY -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --app-dir $REPO" ;;
     frontend)     echo "$NODE_BIN/npm --prefix $REPO/frontend run dev" ;;
+    vllm)         echo "env CUDA_VISIBLE_DEVICES=0 $ENV/vllm-venv/bin/vllm serve ${LLM_MODEL:-Qwen/Qwen3-8B} --port 8001 --gpu-memory-utilization 0.85 --max-model-len 16384" ;;
   esac
 }
 
