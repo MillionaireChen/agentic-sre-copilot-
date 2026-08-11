@@ -91,10 +91,12 @@ Grafana Alloy · MinerU for PDF/Office knowledge extraction
 ## Running (docker-free deployment)
 
 This repo is deployed on a shared GPU server **without docker or sudo** —
-every service runs as a user-space process. See
-[docs/DEPLOYMENT_NOTES.md](docs/DEPLOYMENT_NOTES.md) for the full setup and
-the pitfalls encountered (NFS vs local disk, PromQL rate-window pollution in
-verification, Qwen3 `<think>` stripping, Blackwell cu128 wheels, ...).
+every service runs as a user-space process. To reproduce on another machine,
+follow [docs/SETUP.md](docs/SETUP.md) (`scripts/bootstrap.sh` installs the
+whole runtime). The pitfalls encountered are logged in
+[docs/DEPLOYMENT_NOTES.md](docs/DEPLOYMENT_NOTES.md) (NFS vs local disk,
+PromQL rate-window pollution in verification, Qwen3 `<think>` stripping,
+Blackwell cu128 wheels, ...).
 
 ```bash
 make up        # start postgres, prometheus, loki, alloy, demo-service, api, frontend

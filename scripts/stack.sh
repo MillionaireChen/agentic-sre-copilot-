@@ -4,7 +4,7 @@
 set -u
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-ENV=/var/tmp/fls/sre
+ENV="${SRE_ENV:-/var/tmp/fls/sre}"
 RUN="$REPO/run"
 mkdir -p "$RUN/logs" "$RUN/pids"
 export SRE_REPO="$REPO"
@@ -24,8 +24,10 @@ cmd_for() {
     demo-service) echo "$PY -m uvicorn main:app --host 0.0.0.0 --port 9000 --app-dir $REPO/services/demo-service" ;;
     agent-api)    echo "env CUDA_VISIBLE_DEVICES=0 $PY -m uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --app-dir $REPO" ;;
     frontend)     echo "$NODE_BIN/npm --prefix $REPO/frontend run dev" ;;
-    # shared cu128 vLLM venv (see docs/DEPLOYMENT_NOTES.md); python -m avoids apx shebangs
-    vllm)         echo "env CUDA_VISIBLE_DEVICES=0 /var/tmp/fls/vllm-venv/bin/python -m vllm.entrypoints.openai.api_server --model ${LLM_MODEL:-Qwen/Qwen3-32B} --port 8001 --gpu-memory-utilization 0.85 --max-model-len 16384" ;;
+    # own venv if bootstrapped, else the machine-shared one (docs/DEPLOYMENT_NOTES.md);
+    # python -m avoids venv console-script shebang issues
+    vllm)         local VP="$ENV/vllm-venv/bin/python"; [ -x "$VP" ] || VP=/var/tmp/fls/vllm-venv/bin/python
+                  echo "env CUDA_VISIBLE_DEVICES=0 $VP -m vllm.entrypoints.openai.api_server --model ${LLM_MODEL:-Qwen/Qwen3-32B} --port 8001 --gpu-memory-utilization 0.85 --max-model-len 16384" ;;
   esac
 }
 
